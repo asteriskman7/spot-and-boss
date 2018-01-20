@@ -7,6 +7,7 @@ let game = {
   lastTick: undefined,
   titleMode: undefined,
   buttons: undefined,
+  mousePos: undefined,
   init: function() {
     console.log('init');
 
@@ -15,10 +16,17 @@ let game = {
 
     window.onresize = game.resizeStart;
     game.canvas.onclick = game.canvasClick;
+    game.canvas.onmousemove = game.canvasMouseMove;
 
     game.lastTick = 0;
     game.titleMode = true;
     game.buttons = [];
+    game.mousePos = {x: 0, y: 0};
+    game.hoverColor = '#11111110';
+
+    game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
+      "30px 'Russo One'", '#FFFF00', '#0000FF', 'START GAME', game.startGame);
+
     game.resizeEnd();
     game.tick();
   },
@@ -58,27 +66,51 @@ let game = {
     if (game.titleMode) {
       game.ctx.font = "50px 'Russo One'";
       game.ctx.textAlign = 'center';
-      if (timestamp < 1000) {
-        //draw off the screen to force font loading
-        game.ctx.fillText('loading', 10000, 10000);
-      } else {
-        game.ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.3);
-        game.ctx.font = "30px 'Russo One'";
-        game.ctx.fillText('START GAME', game.canvas.width * 0.5, game.canvas.height * 0.66);
-        let startWidth = game.ctx.measureText('START GAME').width;
-        if (game.startButtonCreated === undefined) {
-          game.createButton(game.canvas.width * 0.5 - startWidth * 0.5, game.canvas.height * 0.66 + 15, game.canvas.width * 0.5 + startWidth * 0.5,
-          game.canvas.height * 0.66 - 15, () => {console.log('button press'); game.titleMode = false;});
-          game.startButtonCreated = true;
-        }
-      }
+      game.ctx.textBaseline = 'middle';
+
+      game.ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.3);
+
     } else {
 
     }
+
+    game.drawButtons();
+
     game.ctx.restore();
   },
-  createButton: function(xll, yll, xur, yur, callback) {
-    game.buttons.push({rect: {xll: xll, yll: yll, xur: xur, yur: yur}, callback: callback});
+  startGame: function() {
+    game.buttons = [];
+    game.titleMode = false;
+  },
+  createButton: function(x, y, w, h, font, bgcolor, fgcolor, text, callback) {
+    //x,y are the upper left corner
+    game.buttons.push({rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
+      fgcolor: fgcolor, text: text, callback: callback});
+  },
+  drawButtons: function() {
+    game.ctx.save();
+    game.ctx.textAlign = 'center';
+    game.ctx.textBaseline = 'middle';
+    game.buttons.forEach((v) => {
+      let hover = game.isPointInRect(game.mousePos, v.rect);
+      //draw background
+      game.ctx.fillStyle = v.bgcolor;
+      game.ctx.fillRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
+      //draw text
+      game.ctx.font = v.font;
+      game.ctx.fillStyle = v.fgcolor;
+      game.ctx.fillText(v.text, v.rect.x + v.rect.w * 0.5 , v.rect.y + v.rect.h * 0.5);
+      if (hover) {
+        game.ctx.fillStyle = game.hoverColor;
+        game.ctx.fillRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
+      }
+      //draw outline
+      game.ctx.strokeStyle = '#000000';
+      game.ctx.lineWidth = hover ? 3 : 1;
+
+      game.ctx.strokeRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
+    });
+    game.ctx.restore();
   },
   canvasClick: function(event) {
     let pos = game.getCursorPosition(event);
@@ -99,7 +131,11 @@ let game = {
     return {x: relx, y: rely};
   },
   isPointInRect(point, rect) {
-    return point.x >= rect.xll && point.x <= rect.xur && point.y <= rect.yll && point.y >= rect.yur;
+    return (point.x >= rect.x) && (point.x <= rect.x + rect.w) && (point.y <= rect.y + rect.h) && (point.y >= rect.y);
+  },
+  canvasMouseMove: function(event) {
+    let pos = game.getCursorPosition(event);
+    game.mousePos = pos;
   }
 };
 

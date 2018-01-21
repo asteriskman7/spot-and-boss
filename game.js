@@ -10,6 +10,8 @@ let game = {
   mousePos: undefined,
   world: undefined,
   scale: undefined,
+  physicsEnabled: undefined,
+  plugJoint: undefined,
   init: function() {
     console.log('init');
 
@@ -26,6 +28,7 @@ let game = {
     game.mousePos = {x: 0, y: 0};
     game.hoverColor = '#11111110';
     game.scale = 75; //75 pixels per meter
+    game.physicsEnabled = true;
 
     game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
       "30px 'Russo One'", '#FFFF00', '#0000FF', 'START GAME', game.startGame);
@@ -65,8 +68,10 @@ let game = {
     if (game.titleMode) {
 
     } else {
-      game.world.Step(1/60, 2, 2);
-      game.world.ClearForces();
+      if (game.physicsEnabled) {
+        game.world.Step(1/60, 2, 2);
+        game.world.ClearForces();
+      }
     }
   },
   draw: function(timestamp, delta) {
@@ -132,6 +137,30 @@ let game = {
     //create spot
     game.spot = game.createBox(200 / game.scale, 200 / game.scale, 0.5, 0.5);
     //create cord
+    let revolute_joint = new b2RevoluteJointDef();
+    let lastLink = leftWall;
+    let lastAnchorPoint = new b2Vec2(0.1, (game.canvas.height * 0.5) / game.scale - 0.5);
+    let boxSize = 0.25;
+    for (let i = 0; i < 10; i++) {
+      let body = game.createBox(3 , 3, boxSize * 0.25, boxSize);
+
+      revolute_joint.bodyA = lastLink;
+      revolute_joint.bodyB = body;
+      revolute_joint.localAnchorA = lastAnchorPoint;
+      revolute_joint.localAnchorB = new b2Vec2(0, boxSize / 2);
+      lastAnchorPoint = new b2Vec2(0, - boxSize / 2);
+      let joint = game.world.CreateJoint(revolute_joint);
+      if (game.plugJoint === undefined) {
+        game.plugJoint = joint;
+      }
+      lastLink = body;
+    }
+
+    revolute_joint.bodyA = lastLink;
+    revolute_joint.bodyB = game.spot;
+    revolute_joint.localAnchorA = lastAnchorPoint;
+    revolute_joint.localAnchorB = new b2Vec2(-boxSize, 0);
+    game.world.CreateJoint(revolute_joint);
   },
   createButton: function(x, y, w, h, font, bgcolor, fgcolor, text, callback) {
     //x,y are the upper left corner

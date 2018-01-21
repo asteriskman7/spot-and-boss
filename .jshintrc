@@ -5,6 +5,7 @@
   "devel": true,
   "loopfunc": true,
   "globals": {
-    "game": true
+    "game": true,
+    "Box2D": true
   }
 }

@@ -13,6 +13,7 @@ let game = {
   physicsEnabled: undefined,
   plugJoint: undefined,
   pressedKeys: undefined,
+  touchScreen: undefined,
   init: function() {
     console.log('init');
 
@@ -22,17 +23,19 @@ let game = {
     window.onresize = game.resizeStart;
     game.canvas.onclick = game.canvasClick;
     game.canvas.onmousemove = game.canvasMouseMove;
+    game.canvas.ontouchstart = game.onTouchStart;
+    game.canvas.ontouchend = game.onTouchEnd;
 
     game.lastTick = 0;
     game.titleMode = true;
     game.buttons = [];
-    game.mousePos = {x: 0, y: 0};
     game.hoverColor = '#11111110';
     game.scale = 75; //75 pixels per meter
     game.physicsEnabled = true;
+    game.touchScreen = false;
 
     game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
-      "30px 'Russo One'", '#FFFF00', '#0000FF', 'START GAME', game.startGame);
+      "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
 
     game.resizeEnd();
     game.tick();
@@ -105,10 +108,33 @@ let game = {
         ctx.rotate(b.GetAngle());
         ctx.translate(-pos.x * game.scale, -pos.y * game.scale);
         switch (userData.type) {
-          case 'rect':
+          case 'spot':
             ctx.fillStyle = "#00FF00";
-
-
+            ctx.fillRect(
+              (pos.x - userData.width / 2) * game.scale,
+              (pos.y - userData.height / 2) * game.scale,
+              userData.width * game.scale,
+              userData.height * game.scale
+            );
+            break;
+          case 'cord':
+            ctx.fillStyle = "#AAAAAA";
+            ctx.fillRect(
+              (pos.x - userData.width / 2) * game.scale,
+              (pos.y - userData.height / 2) * game.scale,
+              userData.width * game.scale,
+              userData.height * game.scale
+            );
+            ctx.strokeStyle = '#000000';
+            ctx.beginPath();
+            ctx.moveTo((pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            ctx.lineTo((pos.x - userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
+            ctx.moveTo((pos.x + userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            ctx.lineTo((pos.x + userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
+            ctx.stroke();
+            break;
+          case 'wall':
+            ctx.fillStyle = "#77612f";
             ctx.fillRect(
               (pos.x - userData.width / 2) * game.scale,
               (pos.y - userData.height / 2) * game.scale,
@@ -143,14 +169,14 @@ let game = {
     let floor = game.createWall(0, (game.canvas.height - 10) / game.scale, game.canvas.width / game.scale, 20 / game.scale);
     let leftWall = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
     //create spot
-    game.spot = game.createBox(200 / game.scale, 200 / game.scale, 0.5, 0.5);
+    game.spot = game.createBox(200 / game.scale, 200 / game.scale, 0.5, 0.5, 'spot');
     //create cord
     let revolute_joint = new b2RevoluteJointDef();
     let lastLink = leftWall;
     let lastAnchorPoint = new b2Vec2(0.1, (game.canvas.height * 0.5) / game.scale - 0.5);
     let boxSize = 0.25;
-    for (let i = 0; i < 10; i++) {
-      let body = game.createBox(3 , 3, boxSize * 0.25, boxSize);
+    for (let i = 0; i < 20; i++) {
+      let body = game.createBox(3 , 3, boxSize * 0.25, boxSize, 'cord');
 
       revolute_joint.bodyA = lastLink;
       revolute_joint.bodyB = body;
@@ -173,11 +199,19 @@ let game = {
     game.pressedKeys = {};
     game.canvas.parentElement.onkeydown = game.onkeydown;
     game.canvas.parentElement.onkeyup = game.onkeyup;
+
+    if (game.touchScreen) {
+      let touchButtonSize = 100;
+      game.createButton(0, (game.canvas.height - touchButtonSize) * 0.5, touchButtonSize, touchButtonSize,
+       "30px 'Russo One'", '#80808020', '#80808060', '#00000000', '<', game.doLeftTouch);
+      game.createButton(game.canvas.width - touchButtonSize, (game.canvas.height - touchButtonSize)* 0.5, touchButtonSize, touchButtonSize,
+       "30px 'Russo One'", '#80808020', '#80808060', '#00000000', '>', game.doRightTouch);
+    }
   },
-  createButton: function(x, y, w, h, font, bgcolor, fgcolor, text, callback) {
+  createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback) {
     //x,y are the upper left corner
     game.buttons.push({rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
-      fgcolor: fgcolor, text: text, callback: callback});
+      fgcolor: fgcolor, strokeColor, text: text, callback: callback});
   },
   drawButtons: function() {
     game.ctx.save();
@@ -197,7 +231,7 @@ let game = {
         game.ctx.fillRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
       }
       //draw outline
-      game.ctx.strokeStyle = '#000000';
+      game.ctx.strokeStyle = v.strokeColor;
       game.ctx.lineWidth = hover ? 3 : 1;
 
       game.ctx.strokeRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
@@ -222,7 +256,16 @@ let game = {
     let rely = absy * game.canvas.height / game.canvas.style.height.slice(0,-2);
     return {x: relx, y: rely};
   },
+  getTouchPosition: function(event) {
+    let rect = game.canvas.getBoundingClientRect();
+    let absx = event.changedTouches[0].pageX - rect.left;
+    let absy = event.changedTouches[0].pageY - rect.top;
+    let relx = absx * game.canvas.width / game.canvas.style.width.slice(0,-2);
+    let rely = absy * game.canvas.height / game.canvas.style.height.slice(0,-2);
+    return {x: relx, y: rely};
+  },
   isPointInRect(point, rect) {
+    if (point === undefined) {return false;}
     return (point.x >= rect.x) && (point.x <= rect.x + rect.w) && (point.y <= rect.y + rect.h) && (point.y >= rect.y);
   },
   canvasMouseMove: function(event) {
@@ -232,7 +275,7 @@ let game = {
   createWall: function(x, y, width, height) {
     //x,y are the upper left corners
     var userData = {};
-    userData.type = 'rect';
+    userData.type = 'wall';
     userData.width = width;
     userData.height = height;
 
@@ -259,9 +302,9 @@ let game = {
 
     return newBody;
   },
-  createBox: function(x, y, width, height) {
+  createBox: function(x, y, width, height, type) {
     var userData = {};
-    userData.type = 'rect';
+    userData.type = type;
     userData.width = width;
     userData.height = height;
 
@@ -291,6 +334,33 @@ let game = {
   },
   onkeyup: function(event) {
     delete game.pressedKeys[event.key];
+  },
+  onTouchStart: function(event) {
+    event.preventDefault();
+    game.touchScreen = true;
+    let pos = game.getTouchPosition(event);
+    game.buttons.forEach((v) => {
+      if (game.isPointInRect(pos, v.rect)) {
+        v.callback();
+      }
+    });
+    game.mousePos = pos;
+  },
+  onTouchEnd: function(event) {
+    let pos = game.getTouchPosition(event);
+    game.buttons.forEach((v) => {
+      if (game.isPointInRect(pos, v.rect)) {
+        v.callback();
+      }
+    });
+    game.mousePos = undefined;
+    game.pressedKeys = {};
+  },
+  doLeftTouch: function() {
+    game.pressedKeys['ArrowLeft'] = true;
+  },
+  doRightTouch: function() {
+    game.pressedKeys['ArrowRight'] = true;
   }
 };
 

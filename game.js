@@ -50,6 +50,7 @@ let game = {
 
     game.canvas.style.top = (ih - size) * 0.5;
     game.canvas.style.left = (iw - size) * 0.5;
+    game.canvas.style.background = '#FFFFFF';
   },
   tick: function(timestamp) {
     let delta = timestamp - game.lastTick;

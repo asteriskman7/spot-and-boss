@@ -4,7 +4,7 @@ body {
 }
 
 canvas {
-  background: white;
+  background: black;
   position: fixed;
   width: 600;
   height: 600;

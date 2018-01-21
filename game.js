@@ -12,6 +12,7 @@ let game = {
   scale: undefined,
   physicsEnabled: undefined,
   plugJoint: undefined,
+  pressedKeys: undefined,
   init: function() {
     console.log('init');
 
@@ -69,6 +70,13 @@ let game = {
 
     } else {
       if (game.physicsEnabled) {
+        if (game.pressedKeys.ArrowRight) {
+          game.spot.ApplyForce(new b2Vec2(1, 0), game.spot.GetWorldCenter());
+        }
+        if (game.pressedKeys.ArrowLeft) {
+          game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
+        }
+
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
       }
@@ -161,6 +169,10 @@ let game = {
     revolute_joint.localAnchorA = lastAnchorPoint;
     revolute_joint.localAnchorB = new b2Vec2(-boxSize, 0);
     game.world.CreateJoint(revolute_joint);
+
+    game.pressedKeys = {};
+    game.canvas.parentElement.onkeydown = game.onkeydown;
+    game.canvas.parentElement.onkeyup = game.onkeyup;
   },
   createButton: function(x, y, w, h, font, bgcolor, fgcolor, text, callback) {
     //x,y are the upper left corner
@@ -274,6 +286,12 @@ let game = {
 
     return newBody;
   },
+  onkeydown: function(event) {
+    game.pressedKeys[event.key] = true;
+  },
+  onkeyup: function(event) {
+    delete game.pressedKeys[event.key];
+  }
 };
 
 //bring Box2D items into global namespace

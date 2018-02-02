@@ -37,6 +37,9 @@ let game = {
     game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
       "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
 
+    //game.music = new Audio('./spot_and_boss_intro2.mp3');
+    //game.music.oncanplaythrough = () => game.music.play();
+
     game.resizeEnd();
     game.tick();
   },
@@ -97,6 +100,64 @@ let game = {
       ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.3);
 
     } else {
+      let lastCordPos;
+      let cordWidth;
+      game.cordPieces.forEach((b) => {
+        let userData = b.GetUserData();
+        let pos = b.GetPosition();
+        ctx.save();
+
+        cordWidth = userData.width; //save for connection to spot
+        ctx.strokeStyle = '#AAAAAA';
+        ctx.lineWidth = userData.width * game.scale;
+        ctx.beginPath();
+        ctx.moveTo(pos.x * game.scale, pos.y * game.scale);
+
+        if (lastCordPos === undefined) {
+          ctx.lineTo(0, pos.y * game.scale);
+        } else {
+          ctx.lineTo(lastCordPos.x * game.scale, lastCordPos.y * game.scale);
+        }
+        ctx.stroke();
+
+        ctx.translate(pos.x * game.scale, pos.y * game.scale);
+        ctx.rotate(b.GetAngle());
+        ctx.translate(-pos.x * game.scale, -pos.y * game.scale);
+        ctx.fillStyle = "#AAAAAA";
+        //fill main cord piece
+        let heightFactor = 1.0;
+        /*ctx.fillRect(
+          (pos.x - userData.width / 2) * game.scale,
+          (pos.y - (userData.height * heightFactor) / 2) * game.scale,
+          userData.width * game.scale,
+          userData.height * game.scale * heightFactor
+        );
+        //draw cord outlines on top and bottom
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo((pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+        ctx.lineTo((pos.x - userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
+        ctx.moveTo((pos.x + userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+        ctx.lineTo((pos.x + userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
+        ctx.stroke();
+        */
+
+        ctx.restore();
+        lastCordPos = pos;
+      });
+
+      //connect cord to spot
+      let spotPos = game.spot.GetPosition();
+      ctx.save();
+      ctx.strokeStyle = '#AAAAAA';
+      ctx.lineWidth = cordWidth * game.scale;
+      ctx.beginPath();
+      ctx.moveTo(lastCordPos.x * game.scale, lastCordPos.y * game.scale);
+      ctx.lineTo(spotPos.x * game.scale, spotPos.y * game.scale);
+      ctx.stroke();
+      ctx.restore();
+
       for (let b = game.world.GetBodyList(); b; b = b.m_next) {
         let userData = b.GetUserData();
         if (userData === null) {
@@ -118,6 +179,7 @@ let game = {
             );
             break;
           case 'cord':
+            /*
             ctx.fillStyle = "#AAAAAA";
             ctx.fillRect(
               (pos.x - userData.width / 2) * game.scale,
@@ -132,6 +194,7 @@ let game = {
             ctx.moveTo((pos.x + userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
             ctx.lineTo((pos.x + userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
             ctx.stroke();
+            */
             break;
           case 'wall':
             ctx.fillStyle = "#77612f";
@@ -175,8 +238,10 @@ let game = {
     let lastLink = leftWall;
     let lastAnchorPoint = new b2Vec2(0.1, (game.canvas.height * 0.5) / game.scale - 0.5);
     let boxSize = 0.25;
+    game.cordPieces = [];
     for (let i = 0; i < 20; i++) {
       let body = game.createBox(3 , 3, boxSize * 0.25, boxSize, 'cord');
+      game.cordPieces.push(body);
 
       revolute_joint.bodyA = lastLink;
       revolute_joint.bodyB = body;
@@ -195,6 +260,13 @@ let game = {
     revolute_joint.localAnchorA = lastAnchorPoint;
     revolute_joint.localAnchorB = new b2Vec2(-boxSize, 0);
     game.world.CreateJoint(revolute_joint);
+
+    let resetSteps = 100;
+    for (let i = 0; i < resetSteps; i++) {
+      game.world.Step(1/60, 2, 2);
+      game.world.ClearForces();
+    }
+
 
     game.pressedKeys = {};
     game.canvas.parentElement.onkeydown = game.onkeydown;
@@ -357,10 +429,10 @@ let game = {
     game.pressedKeys = {};
   },
   doLeftTouch: function() {
-    game.pressedKeys['ArrowLeft'] = true;
+    game.pressedKeys.ArrowLeft = true;
   },
   doRightTouch: function() {
-    game.pressedKeys['ArrowRight'] = true;
+    game.pressedKeys.ArrowRight = true;
   }
 };
 

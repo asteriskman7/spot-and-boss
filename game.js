@@ -68,6 +68,8 @@ let game = {
     game.update(timestamp, delta);
     game.draw(timestamp, delta);
 
+
+
     game.lastTick = timestamp;
     window.requestAnimationFrame(game.tick);
   },
@@ -76,15 +78,23 @@ let game = {
 
     } else {
       if (game.physicsEnabled) {
-        if (game.pressedKeys.ArrowRight) {
-          game.spot.ApplyForce(new b2Vec2(1, 0), game.spot.GetWorldCenter());
-        }
-        if (game.pressedKeys.ArrowLeft) {
-          game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
+        if (game.plugJoint) {
+          if (game.pressedKeys.ArrowRight) {
+            game.spot.ApplyForce(new b2Vec2(1, 0), game.spot.GetWorldCenter());
+          }
+          if (game.pressedKeys.ArrowLeft) {
+            game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
+          }
         }
 
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
+
+        let spotPos = game.spot.GetPosition();
+        if (spotPos.x > 6.3 && game.plugJoint) {
+          game.world.DestroyJoint(game.plugJoint);
+          game.plugJoint = undefined;
+        }
       }
     }
   },
@@ -114,7 +124,9 @@ let game = {
         ctx.moveTo(pos.x * game.scale, pos.y * game.scale);
 
         if (lastCordPos === undefined) {
-          ctx.lineTo(0, pos.y * game.scale);
+          if (game.plugJoint) {
+            ctx.lineTo(0, pos.y * game.scale);
+          }
         } else {
           ctx.lineTo(lastCordPos.x * game.scale, lastCordPos.y * game.scale);
         }
@@ -229,14 +241,17 @@ let game = {
     game.world.GetBodyList().SetUserData({type: 'ground'}); //not sure what this line does
 
     //create walls
-    let floor = game.createWall(0, (game.canvas.height - 10) / game.scale, game.canvas.width / game.scale, 20 / game.scale);
+    //let floor = game.createWall(0, (game.canvas.height - 50) / game.scale, game.canvas.width / game.scale, 10 / game.scale);
+    let floor = game.createWall(0, (game.canvas.height - 50) / game.scale, 6, 10 / game.scale);
+    let stepDown = game.createWall(6, (game.canvas.height - 50) / game.scale, 10 / game.scale, 2);
+    let ground = game.createWall(6, (game.canvas.height - 10) / game.scale, 2, 20 / game.scale );
     let leftWall = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
     //create spot
-    game.spot = game.createBox(200 / game.scale, 200 / game.scale, 0.5, 0.5, 'spot');
+    game.spot = game.createBox(250 / game.scale, 250 / game.scale, 0.5, 0.5, 'spot');
     //create cord
     let revolute_joint = new b2RevoluteJointDef();
     let lastLink = leftWall;
-    let lastAnchorPoint = new b2Vec2(0.1, (game.canvas.height * 0.5) / game.scale - 0.5);
+    let lastAnchorPoint = new b2Vec2(0.1, (game.canvas.height * 0.5) / game.scale - 1);
     let boxSize = 0.25;
     game.cordPieces = [];
     for (let i = 0; i < 20; i++) {
@@ -261,8 +276,14 @@ let game = {
     revolute_joint.localAnchorB = new b2Vec2(-boxSize, 0);
     game.world.CreateJoint(revolute_joint);
 
-    let resetSteps = 100;
+    let resetSteps = 50;
     for (let i = 0; i < resetSteps; i++) {
+      //game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
+      game.world.Step(1/60, 2, 2);
+      game.world.ClearForces();
+    }
+    for (let i = 0; i < resetSteps; i++) {
+      game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
       game.world.Step(1/60, 2, 2);
       game.world.ClearForces();
     }

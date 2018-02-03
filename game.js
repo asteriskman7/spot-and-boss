@@ -138,22 +138,6 @@ let game = {
         ctx.fillStyle = "#AAAAAA";
         //fill main cord piece
         let heightFactor = 1.0;
-        /*ctx.fillRect(
-          (pos.x - userData.width / 2) * game.scale,
-          (pos.y - (userData.height * heightFactor) / 2) * game.scale,
-          userData.width * game.scale,
-          userData.height * game.scale * heightFactor
-        );
-        //draw cord outlines on top and bottom
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo((pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
-        ctx.lineTo((pos.x - userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
-        ctx.moveTo((pos.x + userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
-        ctx.lineTo((pos.x + userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
-        ctx.stroke();
-        */
 
         ctx.restore();
         lastCordPos = pos;
@@ -191,22 +175,7 @@ let game = {
             );
             break;
           case 'cord':
-            /*
-            ctx.fillStyle = "#AAAAAA";
-            ctx.fillRect(
-              (pos.x - userData.width / 2) * game.scale,
-              (pos.y - userData.height / 2) * game.scale,
-              userData.width * game.scale,
-              userData.height * game.scale
-            );
-            ctx.strokeStyle = '#000000';
-            ctx.beginPath();
-            ctx.moveTo((pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
-            ctx.lineTo((pos.x - userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
-            ctx.moveTo((pos.x + userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
-            ctx.lineTo((pos.x + userData.width / 2) * game.scale, (pos.y + userData.height / 2) * game.scale);
-            ctx.stroke();
-            */
+
             break;
           case 'wall':
             ctx.fillStyle = "#77612f";
@@ -228,9 +197,54 @@ let game = {
 
     }
 
+    if (game.dialogActive) {
+      //draw the box
+      let dialogMargin = 110;
+      ctx.fillStyle = '#FF0000';
+      ctx.fillRect(
+        dialogMargin,
+        dialogMargin,
+        ctx.canvas.width - dialogMargin * 2,
+        ctx.canvas.height - dialogMargin * 2
+      );
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 5;
+      ctx.strokeRect(
+        dialogMargin,
+        dialogMargin,
+        ctx.canvas.width - dialogMargin * 2,
+        ctx.canvas.height - dialogMargin * 2
+      );
+      //draw the text
+      ctx.fillStyle = '#000000';
+      ctx.font = "15px 'Russo One'";
+      ctx.textAlignt = 'left';
+      ctx.textBaseline = 'hanging';
+      let textMargin = 10;
+      let msgLeft = game.dialogMsg;
+      let maxChars = 45;
+      let nextTextY = dialogMargin + textMargin;
+      while (msgLeft.length > 0) {
+        //take the maxChars chars and then back up to the previous space
+        let msgLine;
+        if (msgLeft.length <= maxChars) {
+          msgLine = msgLeft;
+          msgLeft = '';
+        } else {
+          msgLine = msgLeft.substr(0, maxChars);
+          let lastSpace = msgLine.lastIndexOf(' ');
+          msgLine = msgLine.substr(0, lastSpace);
+          msgLeft = msgLeft.substr(lastSpace + 1);
+        }
+        ctx.fillText(msgLine, dialogMargin + textMargin, nextTextY);
+        nextTextY += 20;
+      }
+      //draw the character
+    }
+
     game.drawButtons();
 
-    game.ctx.restore();
+    ctx.restore();
   },
   startGame: function() {
     game.buttons = [];
@@ -300,11 +314,14 @@ let game = {
       game.createButton(game.canvas.width - touchButtonSize, (game.canvas.height - touchButtonSize)* 0.5, touchButtonSize, touchButtonSize,
        "30px 'Russo One'", '#80808020', '#80808060', '#00000000', '>', game.doRightTouch);
     }
+    //Self Propelled Obliterater of Trash (S.P.O.T) and the Bot Operation Support Superintendent (B.O.S.S)
+    game.showDialogBox("Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S). I'm in charge of watching over that Self Propelled Obliterater of Trash (S.P.O.T) over there.");
+
   },
-  createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback) {
+  createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback, tag) {
     //x,y are the upper left corner
     game.buttons.push({rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
-      fgcolor: fgcolor, strokeColor, text: text, callback: callback});
+      fgcolor: fgcolor, strokeColor, text: text, callback: callback, tag: tag});
   },
   drawButtons: function() {
     game.ctx.save();
@@ -454,6 +471,26 @@ let game = {
   },
   doRightTouch: function() {
     game.pressedKeys.ArrowRight = true;
+  },
+  showDialogBox: function(msg) {
+    //stop physics
+    game.physicsEnabled = false;
+    game.dialogActive = true;
+    game.dialogMsg = msg;
+    //game.createButton(x, y, w, h, "30px 'Russo One'", bgcolor, fgcolor, '#000000', text, callback);
+    let buttonWidth = 100;
+    let buttonHeight = 40;
+    game.createButton(game.canvas.width - buttonWidth - 110 - 10, game.canvas.height - buttonHeight - 110 - 10,
+      buttonWidth, buttonHeight, "30px 'Russo One'", '#FF00FF', '#000000', '#000000', 'OK', game.closeDialogBox, 'dialogBoxButton');
+  },
+  closeDialogBox: function() {
+    game.physicsEnabled = true;
+    game.dialogActive = false;
+    //delete the button
+    game.removeButtonByTag('dialogBoxButton');
+  },
+  removeButtonByTag: function(tag) {
+    game.buttons = game.buttons.filter((v) => v.tag !== tag);
   }
 };
 

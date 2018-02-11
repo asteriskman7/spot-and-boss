@@ -6,6 +6,7 @@
   "loopfunc": true,
   "globals": {
     "game": true,
-    "Box2D": true
+    "Box2D": true,
+    "images": true
   }
 }

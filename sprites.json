@@ -1,0 +1,6 @@
+{
+  "imgUrl": "sprites.png",
+  "spriteList": [
+    {"name": "spot", "x": 0, "y": 0, "width": 38, "height": 38}
+  ]
+}

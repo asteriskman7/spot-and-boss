@@ -39,6 +39,8 @@ let game = {
 
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
+    //images.loadSingleImage('box_test_38x38.png', 'spot');
+    images.loadSpriteSheet('./sprites.json');
 
     game.resizeEnd();
     game.tick();
@@ -166,6 +168,7 @@ let game = {
         ctx.translate(-pos.x * game.scale, -pos.y * game.scale);
         switch (userData.type) {
           case 'spot':
+            /*
             ctx.fillStyle = "#00FF00";
             ctx.fillRect(
               (pos.x - userData.width / 2) * game.scale,
@@ -173,6 +176,8 @@ let game = {
               userData.width * game.scale,
               userData.height * game.scale
             );
+            */
+            images.draw(ctx, 'spot', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
             break;
           case 'cord':
 

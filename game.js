@@ -116,6 +116,7 @@ let game = {
         });
 
         while (game.collectables.length < 5) {
+          game.score += 1;
           game.addCollectable();
         }
 
@@ -242,6 +243,13 @@ let game = {
 
         ctx.restore();
       }
+
+      //draw score
+      ctx.fillStyle = '#2d2727';
+      ctx.font = "25px 'Russo One'";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Trash collected: ${game.score}`, 10, game.canvas.height - 8);
 
     }
 

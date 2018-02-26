@@ -14,6 +14,8 @@ let game = {
   plugJoint: undefined,
   pressedKeys: undefined,
   touchScreen: undefined,
+  collectables: [],
+  score: 0,
   init: function() {
     console.log('init');
 
@@ -97,6 +99,26 @@ let game = {
           game.world.DestroyJoint(game.plugJoint);
           game.plugJoint = undefined;
         }
+
+        //collect collectables
+        let spotPixelWidth = game.spot.GetUserData().width * game.scale;
+        let minSpotX = spotPos.x * game.scale - spotPixelWidth * 0.5;
+        let maxSpotX = minSpotX + spotPixelWidth;
+        game.collectables = game.collectables.filter(v => {
+          let minCX = v.x - 0.5 * v.w;
+          let maxCX = minCX + v.w;
+          if ((minCX >= minSpotX && minCX <= maxSpotX) || (maxCX >= minSpotX && maxCX <= maxSpotX)) {
+            return false;
+          } else {
+            return true;
+          }
+          //return true for everything not collected
+        });
+
+        while (game.collectables.length < 5) {
+          game.addCollectable();
+        }
+
       }
     }
   },
@@ -115,6 +137,11 @@ let game = {
 
       images.draw(ctx, 'background', 0, 0);
 
+      game.collectables.forEach(v => {
+        ctx.fillStyle = '#00FF00';
+        ctx.fillRect(v.x - v.w * 0.5, 539, v.w, v.w);
+      });
+
       let lastCordPos;
       let cordWidth;
       game.cordPieces.forEach((b) => {
@@ -130,7 +157,8 @@ let game = {
 
         if (lastCordPos === undefined) {
           if (game.plugJoint) {
-            ctx.lineTo(0, pos.y * game.scale);
+            //ctx.lineTo(0, pos.y * game.scale);
+            ctx.lineTo(10, 535);
           }
         } else {
           ctx.lineTo(lastCordPos.x * game.scale, lastCordPos.y * game.scale);
@@ -327,6 +355,9 @@ let game = {
       game.world.ClearForces();
     }
 
+    for (let i = 0; i < 5; i++) {
+      game.addCollectable();
+    }
 
     game.pressedKeys = {};
     game.canvas.parentElement.onkeydown = game.onkeydown;
@@ -516,6 +547,11 @@ let game = {
   },
   removeButtonByTag: function(tag) {
     game.buttons = game.buttons.filter((v) => v.tag !== tag);
+  },
+  addCollectable: function() {
+    let minx = 70;
+    let maxx = 440;
+    game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 10});
   }
 };
 

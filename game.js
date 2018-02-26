@@ -112,6 +112,9 @@ let game = {
       ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.3);
 
     } else {
+
+      images.draw(ctx, 'background', 0, 0);
+
       let lastCordPos;
       let cordWidth;
       game.cordPieces.forEach((b) => {
@@ -182,7 +185,18 @@ let game = {
           case 'cord':
 
             break;
+          case 'door':
+            // ctx.fillStyle = '#FF0000';
+            // ctx.fillRect(
+            //   (pos.x - userData.width / 2) * game.scale,
+            //   (pos.y - userData.height / 2) * game.scale,
+            //   userData.width * game.scale,
+            //   userData.height * game.scale
+            // );
+            images.draw(ctx, 'door', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            break;
           case 'wall':
+          /*
             ctx.fillStyle = "#77612f";
             ctx.fillRect(
               (pos.x - userData.width / 2) * game.scale,
@@ -190,6 +204,7 @@ let game = {
               userData.width * game.scale,
               userData.height * game.scale
             );
+            */
             break;
           case 'ground':
             break;
@@ -265,6 +280,11 @@ let game = {
     let stepDown = game.createWall(6, (game.canvas.height - 50) / game.scale, 10 / game.scale, 2);
     let ground = game.createWall(6, (game.canvas.height - 10) / game.scale, 2, 20 / game.scale );
     let leftWall = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+
+    game.door = game.createWall(6, (game.canvas.height - 250) / game.scale, 10 / game.scale, 2.67, 'door');
+
+    let doorWall = game.createWall(6, 0, 10 / game.scale, 4.7);
+
     //create spot
     game.spot = game.createBox(250 / game.scale, 250 / game.scale, 0.5, 0.5, 'spot');
     //create cord
@@ -315,9 +335,9 @@ let game = {
     if (game.touchScreen) {
       let touchButtonSize = 100;
       game.createButton(0, (game.canvas.height - touchButtonSize) * 0.5, touchButtonSize, touchButtonSize,
-       "30px 'Russo One'", '#80808020', '#80808060', '#00000000', '<', game.doLeftTouch);
+       "30px 'Russo One'", '#F0F0F020', '#F0F0F060', '#00000000', '<', game.doLeftTouch);
       game.createButton(game.canvas.width - touchButtonSize, (game.canvas.height - touchButtonSize)* 0.5, touchButtonSize, touchButtonSize,
-       "30px 'Russo One'", '#80808020', '#80808060', '#00000000', '>', game.doRightTouch);
+       "30px 'Russo One'", '#F0F0F020', '#F0F0F060', '#00000000', '>', game.doRightTouch);
     }
     //Self Propelled Obliterater of Trash (S.P.O.T) and the Bot Operation Support Superintendent (B.O.S.S)
     game.showDialogBox("Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S). I'm in charge of watching over that Self Propelled Obliterater of Trash (S.P.O.T) over there.");
@@ -387,10 +407,10 @@ let game = {
     let pos = game.getCursorPosition(event);
     game.mousePos = pos;
   },
-  createWall: function(x, y, width, height) {
+  createWall: function(x, y, width, height, type) {
     //x,y are the upper left corners
     var userData = {};
-    userData.type = 'wall';
+    userData.type = type || 'wall';
     userData.width = width;
     userData.height = height;
 

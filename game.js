@@ -456,7 +456,7 @@ let game = {
     var fDef = new b2FixtureDef();
     fDef.density = 1.0;
     fDef.friction = 0.5;
-    fDef.friction = 0.0;
+    fDef.friction = 0.1;
     fDef.restitution = 0.2;
     fDef.restitution = 0.1;
     fDef.shape = new b2PolygonShape();
@@ -485,9 +485,13 @@ let game = {
     var fDef = new b2FixtureDef();
     fDef.density = 1.0;
     fDef.friction = 0.5;
-    fDef.friction = 0.0;
+    fDef.friction = 0.1;
     fDef.restitution = 0.2;
     fDef.restitution = 0.1;
+    if (type === 'cord') {
+      fDef.density = 0.3;
+      fDef.friction = 0.0;
+    }
     fDef.shape = new b2PolygonShape();
     fDef.shape.SetAsBox(width / 2, height / 2);
 

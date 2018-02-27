@@ -150,9 +150,11 @@ let game = {
         let pos = b.GetPosition();
         ctx.save();
 
-        cordWidth = userData.width; //save for connection to spot
+        //cordWidth = userData.width; //save for connection to spot
+        cordWidth = 2 / game.scale;
         ctx.strokeStyle = '#AAAAAA';
-        ctx.lineWidth = userData.width * game.scale;
+        //ctx.lineWidth = userData.width * game.scale;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(pos.x * game.scale, pos.y * game.scale);
 
@@ -255,22 +257,23 @@ let game = {
 
     if (game.dialogActive) {
       //draw the box
-      let dialogMargin = 110;
-      ctx.fillStyle = '#FF0000';
-      ctx.fillRect(
-        dialogMargin,
-        dialogMargin,
-        ctx.canvas.width - dialogMargin * 2,
-        ctx.canvas.height - dialogMargin * 2
-      );
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 5;
-      ctx.strokeRect(
-        dialogMargin,
-        dialogMargin,
-        ctx.canvas.width - dialogMargin * 2,
-        ctx.canvas.height - dialogMargin * 2
-      );
+      images.draw(ctx, 'dialog', 88, 0);
+      // let dialogMargin = 110;
+      // ctx.fillStyle = '#FF0000';
+      // ctx.fillRect(
+      //   dialogMargin,
+      //   dialogMargin,
+      //   ctx.canvas.width - dialogMargin * 2,
+      //   ctx.canvas.height - dialogMargin * 2
+      // );
+      // ctx.strokeStyle = '#000000';
+      // ctx.lineWidth = 5;
+      // // ctx.strokeRect(
+      // //   dialogMargin,
+      // //   dialogMargin,
+      // //   ctx.canvas.width - dialogMargin * 2,
+      // //   ctx.canvas.height - dialogMargin * 2
+      // // );
       //draw the text
       ctx.fillStyle = '#000000';
       ctx.font = "15px 'Russo One'";
@@ -279,7 +282,7 @@ let game = {
       let textMargin = 10;
       let msgLeft = game.dialogMsg;
       let maxChars = 45;
-      let nextTextY = dialogMargin + textMargin;
+      let nextTextY = 222;
       while (msgLeft.length > 0) {
         //take the maxChars chars and then back up to the previous space
         let msgLine;
@@ -292,7 +295,7 @@ let game = {
           msgLine = msgLine.substr(0, lastSpace);
           msgLeft = msgLeft.substr(lastSpace + 1);
         }
-        ctx.fillText(msgLine, dialogMargin + textMargin, nextTextY);
+        ctx.fillText(msgLine, 120, nextTextY);
         nextTextY += 20;
       }
       //draw the character

@@ -94,12 +94,11 @@ let game = {
           }
         }
 
-        if (game.tx && game.ty) {
-          game.bossJoint.SetTarget(new b2Vec2(game.tx, game.ty));
-        } else {
-          let s = Math.sin(timestamp / 5000);
-          game.bossJoint.SetTarget(new b2Vec2(1 + 4 * s * s, 2));
-        }
+        game.bossT += 1/60;
+        let bossX = game.spot.GetPosition().x + 0.5 * Math.sin(game.bossT*2);
+        let bossY = 2 + 0.5 * Math.sin(game.bossT*1.5);
+        game.bossJoint.SetTarget(new b2Vec2(bossX, bossY));
+
 
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
@@ -327,6 +326,7 @@ let game = {
     let stepDown = game.createWall(6, (game.canvas.height - 50) / game.scale, 10 / game.scale, 2);
     let ground = game.createWall(6, (game.canvas.height - 10) / game.scale, 2, 20 / game.scale );
     let leftWall = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+    let roof = game.createWall(0, 2.4, 6, 0.1);
 
     game.door = game.createWall(6, (game.canvas.height - 250) / game.scale, 10 / game.scale, 2.67, 'door');
 
@@ -386,6 +386,8 @@ let game = {
 
     game.boss.SetAwake(true);
     game.bossRoot.SetAwake(true);
+
+    game.bossT = 0;
 
     let resetSteps = 50;
     for (let i = 0; i < resetSteps; i++) {

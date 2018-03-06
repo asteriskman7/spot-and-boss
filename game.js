@@ -277,8 +277,6 @@ let game = {
       ctx.textBaseline = 'bottom';
       ctx.fillText(`Trash collected: ${game.score}`, 10, game.canvas.height - 8);
 
-
-      game.drawBoss();
     }
 
     if (game.dialogActive) {
@@ -604,9 +602,6 @@ let game = {
     let maxx = 440;
     game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 10});
   },
-  drawBoss: function() {
-    images.draw(game.ctx, 'boss', 0, 0);
-  }
 };
 
 //bring Box2D items into global namespace

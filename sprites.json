@@ -4,6 +4,7 @@
     {"name": "spot", "x": 0, "y": 0, "width": 38, "height": 38},
     {"name": "door", "x": 0, "y": 38, "width": 10, "height": 200},
     {"name": "background", "x": 10, "y": 38, "width": 600, "height": 600},
-    {"name": "dialog", "x": 610, "y": 38, "width": 491, "height": 513}
+    {"name": "dialog", "x": 610, "y": 38, "width": 491, "height": 513},
+    {"name": "boss", "x": 611, "y": 551, "width": 62, "height": 86}
   ]
 }

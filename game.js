@@ -36,8 +36,8 @@ let game = {
     game.physicsEnabled = true;
     game.touchScreen = false;
 
-    game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
-      "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
+    //game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
+    //  "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
 
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
@@ -72,14 +72,17 @@ let game = {
     game.update(timestamp, delta);
     game.draw(timestamp, delta);
 
-
-
     game.lastTick = timestamp;
     window.requestAnimationFrame(game.tick);
   },
   update: function(timestamp, delta) {
     if (game.titleMode) {
-
+      if (images.isDoneLoading()) {
+        if (game.buttons.length === 0) {
+          game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
+            "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
+        }
+      }
     } else {
       if (game.physicsEnabled) {
         if (game.plugJoint) {
@@ -89,6 +92,13 @@ let game = {
           if (game.pressedKeys.ArrowLeft) {
             game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
           }
+        }
+
+        if (game.tx && game.ty) {
+          game.bossJoint.SetTarget(new b2Vec2(game.tx, game.ty));
+        } else {
+          let s = Math.sin(timestamp / 5000);
+          game.bossJoint.SetTarget(new b2Vec2(1 + 4 * s * s, 2));
         }
 
         game.world.Step(1/60, 2, 2);
@@ -201,6 +211,17 @@ let game = {
         ctx.rotate(b.GetAngle());
         ctx.translate(-pos.x * game.scale, -pos.y * game.scale);
         switch (userData.type) {
+          case 'hidden':
+            break;
+          case 'proto':
+            ctx.fillStyle = '#FFFF00';
+            ctx.fillRect(
+              (pos.x - userData.width / 2) * game.scale,
+              (pos.y - userData.height / 2) * game.scale,
+              userData.width * game.scale,
+              userData.height * game.scale
+            );
+            break;
           case 'spot':
             /*
             ctx.fillStyle = "#00FF00";
@@ -212,6 +233,9 @@ let game = {
             );
             */
             images.draw(ctx, 'spot', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            break;
+          case 'boss':
+            images.draw(ctx, 'boss', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
             break;
           case 'cord':
 
@@ -253,27 +277,14 @@ let game = {
       ctx.textBaseline = 'bottom';
       ctx.fillText(`Trash collected: ${game.score}`, 10, game.canvas.height - 8);
 
+
+      game.drawBoss();
     }
 
     if (game.dialogActive) {
       //draw the box
       images.draw(ctx, 'dialog', 88, 0);
-      // let dialogMargin = 110;
-      // ctx.fillStyle = '#FF0000';
-      // ctx.fillRect(
-      //   dialogMargin,
-      //   dialogMargin,
-      //   ctx.canvas.width - dialogMargin * 2,
-      //   ctx.canvas.height - dialogMargin * 2
-      // );
-      // ctx.strokeStyle = '#000000';
-      // ctx.lineWidth = 5;
-      // // ctx.strokeRect(
-      // //   dialogMargin,
-      // //   dialogMargin,
-      // //   ctx.canvas.width - dialogMargin * 2,
-      // //   ctx.canvas.height - dialogMargin * 2
-      // // );
+
       //draw the text
       ctx.fillStyle = '#000000';
       ctx.font = "15px 'Russo One'";
@@ -298,7 +309,6 @@ let game = {
         ctx.fillText(msgLine, 120, nextTextY);
         nextTextY += 20;
       }
-      //draw the character
     }
 
     game.drawButtons();
@@ -353,6 +363,31 @@ let game = {
     revolute_joint.localAnchorA = lastAnchorPoint;
     revolute_joint.localAnchorB = new b2Vec2(-boxSize, 0);
     game.world.CreateJoint(revolute_joint);
+
+    game.bossRoot = game.createBox(2, 2, 0.1, 0.1, 'hidden');
+    let bossWidth = 62 / game.scale;
+    let bossHeight = 86 / game.scale;
+    game.boss = game.createBox(2, 2, bossWidth, bossHeight, 'boss');
+    revolute_joint.bodyA = game.bossRoot;
+    revolute_joint.bodyB = game.boss;
+    revolute_joint.localAnchorA = new b2Vec2(0, 0);
+    revolute_joint.localAnchorB = new b2Vec2(0, -bossHeight * 0.3);
+    revolute_joint.collideConnected = false;
+    game.world.CreateJoint(revolute_joint);
+    let def = new b2MouseJointDef();
+    def.bodyA = ground; //this body shouldn't matter
+    def.bodyB = game.bossRoot;
+    let p = game.bossRoot.GetPosition();
+    def.target = p;
+    def.collideConnected = false;
+    //def.maxForce = 1000 * game.bossRoot.GetMass();
+    def.maxForce = 100 * game.boss.GetMass();
+    def.dampingRatio = 0;
+
+    game.bossJoint = game.world.CreateJoint(def);
+
+    game.boss.SetAwake(true);
+    game.bossRoot.SetAwake(true);
 
     let resetSteps = 50;
     for (let i = 0; i < resetSteps; i++) {
@@ -479,6 +514,7 @@ let game = {
 
     return newBody;
   },
+  //x,y are upper left corners
   createBox: function(x, y, width, height, type) {
     var userData = {};
     userData.type = type;
@@ -567,6 +603,9 @@ let game = {
     let minx = 70;
     let maxx = 440;
     game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 10});
+  },
+  drawBoss: function() {
+    images.draw(game.ctx, 'boss', 0, 0);
   }
 };
 
@@ -581,6 +620,7 @@ let b2Vec2 = Box2D.Common.Math.b2Vec2,
  	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
  	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
 	b2DebugDraw = Box2D.Dynamics.b2DebugDraw,
-  b2RevoluteJointDef =  Box2D.Dynamics.Joints.b2RevoluteJointDef;
+  b2RevoluteJointDef =  Box2D.Dynamics.Joints.b2RevoluteJointDef,
+  b2MouseJointDef = Box2D.Dynamics.Joints.b2MouseJointDef;
 
 game.init();

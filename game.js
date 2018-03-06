@@ -36,9 +36,6 @@ let game = {
     game.physicsEnabled = true;
     game.touchScreen = false;
 
-    //game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
-    //  "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
-
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
     //images.loadSingleImage('box_test_38x38.png', 'spot');
@@ -79,7 +76,7 @@ let game = {
     if (game.titleMode) {
       if (images.isDoneLoading()) {
         if (game.buttons.length === 0) {
-          game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.66 - 20, 240, 40,
+          game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.3 - 20, 240, 40,
             "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
         }
       }
@@ -140,8 +137,12 @@ let game = {
       ctx.font = "50px 'Russo One'";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-
-      ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.3);
+      if (images.isDoneLoading()) {
+        images.draw(ctx, 'titleBG', 0, 0);
+      } else {
+        ctx.fillText('LOADING', game.canvas.width * 0.5, game.canvas.height * 0.5);
+      }
+      ctx.fillText('S.P.O.T & B.O.S.S', game.canvas.width * 0.5, game.canvas.height * 0.1);
 
     } else {
 

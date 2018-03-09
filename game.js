@@ -16,6 +16,9 @@ let game = {
   touchScreen: undefined,
   collectables: [],
   score: 0,
+  speed: 0.5,
+  scoreThresholds: undefined,
+  maxTrash: 5,
   init: function() {
     console.log('init');
 
@@ -35,6 +38,16 @@ let game = {
     game.scale = 75; //75 pixels per meter
     game.physicsEnabled = true;
     game.touchScreen = false;
+
+    game.scoreThresholds = [];
+    game.scoreThresholds.push({val: 10, msg: "Wow! You're really getting the hang of this! " +
+      "Since you've already collected 10 pieces of trash I'll go ahead and give you a speed upgrade! " +
+      "Keep collecting that trash!", action: () => {game.speed = 2.0;} });
+    game.scoreThresholds.push({val: 100, msg: "You're doing an AMAZING job! I'm going to let the " +
+      "homeowners know that there's no need to pick up after themselves anymore. They can throw " +
+      "their trash straight on the floor from now on! And by the way, try to be a little more careful " +
+      "with your power cord, it's the only thing keeping you alive!", action: () => {game.maxTrash = 20;}});
+    game.scoreThresholds.push({val: 1000, msg: "1000 message", action: undefined});
 
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
@@ -77,17 +90,17 @@ let game = {
       if (images.isDoneLoading()) {
         if (game.buttons.length === 0) {
           game.createButton(game.canvas.width * 0.5 - 120, game.canvas.height * 0.3 - 20, 240, 40,
-            "30px 'Russo One'", '#FFFF00', '#0000FF', '#000000', 'START GAME', game.startGame);
+            "30px 'Russo One'", '#E8F4FF', '#2A6F8A', '#000000', 'START GAME', game.startGame);
         }
       }
     } else {
       if (game.physicsEnabled) {
         if (game.plugJoint) {
           if (game.pressedKeys.ArrowRight) {
-            game.spot.ApplyForce(new b2Vec2(1, 0), game.spot.GetWorldCenter());
+            game.spot.ApplyForce(new b2Vec2(game.speed, 0), game.spot.GetWorldCenter());
           }
           if (game.pressedKeys.ArrowLeft) {
-            game.spot.ApplyForce(new b2Vec2(-1, 0), game.spot.GetWorldCenter());
+            game.spot.ApplyForce(new b2Vec2(-game.speed, 0), game.spot.GetWorldCenter());
           }
         }
 
@@ -121,9 +134,20 @@ let game = {
           //return true for everything not collected
         });
 
-        while (game.collectables.length < 5) {
+        while (game.collectables.length < game.maxTrash) {
           game.score += 1;
           game.addCollectable();
+          if (game.scoreThresholds.length > 0) {
+            let threshDetails = game.scoreThresholds[0];
+            if (game.score >= threshDetails.val) {
+              game.showDialogBox(threshDetails.msg);
+              if (threshDetails.action !== undefined) {
+                threshDetails.action();
+              }
+              game.scoreThresholds.shift();
+
+            }
+          }
         }
 
       }
@@ -150,8 +174,10 @@ let game = {
 
       game.collectables.forEach(v => {
         ctx.fillStyle = '#00FF00';
-        ctx.fillRect(v.x - v.w * 0.5, 539, v.w, v.w);
+        //ctx.fillRect(v.x - v.w * 0.5, 533, v.w, v.w);
+        images.draw(ctx, `trash${v.type}`, v.x - v.w * 0.5, 533);
       });
+
 
       let lastCordPos;
       let cordWidth;
@@ -418,7 +444,11 @@ let game = {
        "30px 'Russo One'", '#F0F0F020', '#F0F0F060', '#00000000', '>', game.doRightTouch);
     }
     //Self Propelled Obliterater of Trash (S.P.O.T) and the Bot Operation Support Superintendent (B.O.S.S)
-    game.showDialogBox("Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S). I'm in charge of watching over that Self Propelled Obliterater of Trash (S.P.O.T) over there.");
+    let dialogText = "Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S)." +
+      " I'm in charge of watching over that Self Propelled Obliterater of Trash (S.P.O.T)" +
+      " down there. Can you help him collect trash with " + (game.touchScreen ? "the" : "your") +
+      " arrow " + (game.touchScreen ? "buttons" : "keys") + "?";
+    game.showDialogBox(dialogText);
 
   },
   createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback, tag) {
@@ -589,7 +619,7 @@ let game = {
     let buttonWidth = 100;
     let buttonHeight = 40;
     game.createButton(game.canvas.width - buttonWidth - 110 - 10, game.canvas.height - buttonHeight - 110 - 10,
-      buttonWidth, buttonHeight, "30px 'Russo One'", '#FF00FF', '#000000', '#000000', 'OK', game.closeDialogBox, 'dialogBoxButton');
+      buttonWidth, buttonHeight, "30px 'Russo One'", '#A5C4D2', '#000000', '#000000', 'OK', game.closeDialogBox, 'dialogBoxButton');
   },
   closeDialogBox: function() {
     game.physicsEnabled = true;
@@ -603,7 +633,8 @@ let game = {
   addCollectable: function() {
     let minx = 70;
     let maxx = 440;
-    game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 10});
+    let trashTypes = 6;
+    game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 16, type: Math.floor(Math.random() * trashTypes)});
   },
 };
 

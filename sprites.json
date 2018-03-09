@@ -6,6 +6,12 @@
     {"name": "background", "x": 10, "y": 39, "width": 600, "height": 600},
     {"name": "dialog", "x": 610, "y": 38, "width": 491, "height": 513},
     {"name": "boss", "x": 611, "y": 551, "width": 62, "height": 86},
-    {"name": "titleBG", "x": 0, "y": 641, "width": 600, "height": 600}
+    {"name": "titleBG", "x": 0, "y": 641, "width": 600, "height": 600},
+    {"name": "trash0", "x": 44, "y": 21, "width": 16, "height": 16},
+    {"name": "trash1", "x": 62, "y": 21, "width": 16, "height": 16},
+    {"name": "trash2", "x": 80, "y": 21, "width": 16, "height": 16},
+    {"name": "trash3", "x": 44, "y": 4, "width": 16, "height": 16},
+    {"name": "trash4", "x": 62, "y": 4, "width": 16, "height": 16},
+    {"name": "trash5", "x": 80, "y": 4, "width": 16, "height": 16}   
   ]
 }

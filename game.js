@@ -19,6 +19,9 @@ let game = {
   speed: 0.5,
   scoreThresholds: undefined,
   maxTrash: 5,
+  outside: false,
+  dead: false,
+  bossLeave: false,
   init: function() {
     console.log('init');
 
@@ -47,7 +50,7 @@ let game = {
       "homeowners know that there's no need to pick up after themselves anymore. They can throw " +
       "their trash straight on the floor from now on! And by the way, try to be a little more careful " +
       "with your power cord, it's the only thing keeping you alive!", action: () => {game.maxTrash = 20;}});
-    game.scoreThresholds.push({val: 1000, msg: "1000 message", action: undefined});
+    game.scoreThresholds.push({val: 500, msg: "The door is open.", action: game.openDoor});
 
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
@@ -102,11 +105,44 @@ let game = {
           if (game.pressedKeys.ArrowLeft) {
             game.spot.ApplyForce(new b2Vec2(-game.speed, 0), game.spot.GetWorldCenter());
           }
+        } else {
+          if (!game.dead) {
+            let spotPos = game.spot.GetPosition();
+            let stopX = 7.0;
+            if (spotPos.x > 6.3) {
+              game.outside = true;
+              let d = stopX - spotPos.x;
+              let linearV = game.spot.GetLinearVelocity();
+              game.spot.SetLinearVelocity(new b2Vec2(linearV.x * 0.9, linearV.y));
+              setTimeout(() => {
+                if (!game.dead) {
+                  game.dead = true;
+                  game.showDialogBox('oops');
+                  game.bossLeave = true;
+                }
+              }, 6000);
+            }
+          } else {
+            game.spot.SetAwake(false);
+            game.cordPieces.forEach(v => v.SetAwake(false));
+          }
         }
 
         game.bossT += 1/60;
-        let bossX = game.spot.GetPosition().x + 0.5 * Math.sin(game.bossT*2);
-        let bossY = 2 + 0.5 * Math.sin(game.bossT*1.5);
+        let bossX;
+        let bossY;
+        if (game.outside) {
+          if (game.bossLeave) {
+            bossX = 8;
+            bossY = -3;
+          } else {
+            bossX = game.spot.GetPosition().x + 0.2 * Math.sin(game.bossT*3);
+            bossY = 4 + 0.2 * Math.sin(game.bossT*2.5);
+          }
+        } else {
+          bossX = game.spot.GetPosition().x + 0.5 * Math.sin(game.bossT*2);
+          bossY = 2 + 0.5 * Math.sin(game.bossT*1.5);
+        }
         game.bossJoint.SetTarget(new b2Vec2(bossX, bossY));
 
 
@@ -138,14 +174,15 @@ let game = {
           game.score += 1;
           game.addCollectable();
           if (game.scoreThresholds.length > 0) {
-            let threshDetails = game.scoreThresholds[0];
-            if (game.score >= threshDetails.val) {
-              game.showDialogBox(threshDetails.msg);
-              if (threshDetails.action !== undefined) {
-                threshDetails.action();
+            while (game.scoreThresholds.length > 0 && game.score >= game.scoreThresholds[0].val) {
+              let threshDetails = game.scoreThresholds[0];
+              if (game.score >= threshDetails.val) {
+                game.showDialogBox(threshDetails.msg);
+                if (threshDetails.action !== undefined) {
+                  threshDetails.action();
+                }
+                game.scoreThresholds.shift();
               }
-              game.scoreThresholds.shift();
-
             }
           }
         }
@@ -351,7 +388,7 @@ let game = {
     //let floor = game.createWall(0, (game.canvas.height - 50) / game.scale, game.canvas.width / game.scale, 10 / game.scale);
     let floor = game.createWall(0, (game.canvas.height - 50) / game.scale, 6, 10 / game.scale);
     let stepDown = game.createWall(6, (game.canvas.height - 50) / game.scale, 10 / game.scale, 2);
-    let ground = game.createWall(6, (game.canvas.height - 10) / game.scale, 2, 20 / game.scale );
+    let ground = game.createWall(6, (game.canvas.height - 10) / game.scale, 20, 20 / game.scale );
     let leftWall = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
     let roof = game.createWall(0, 2.4, 6, 0.1);
 
@@ -410,6 +447,7 @@ let game = {
     def.dampingRatio = 0;
 
     game.bossJoint = game.world.CreateJoint(def);
+    game.bossJoint.SetDampingRatio(5);
 
     game.boss.SetAwake(true);
     game.bossRoot.SetAwake(true);
@@ -636,6 +674,9 @@ let game = {
     let trashTypes = 6;
     game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 16, type: Math.floor(Math.random() * trashTypes)});
   },
+  openDoor: function() {
+    game.world.DestroyBody(game.door);
+  }
 };
 
 //bring Box2D items into global namespace

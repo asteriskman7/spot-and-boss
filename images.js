@@ -53,5 +53,9 @@ let images = {
     let width = w || i.width;
     let height = h || i.height;
     ctx.drawImage(i.img, i.sx, i.sy, i.width, i.height, x, y, width, height);
+  },
+  getImageSize: function(name) {
+    let i = images.nameMap[name];
+    return {width: i.width, height: i.height};
   }
 };

@@ -22,6 +22,7 @@ let game = {
   outside: false,
   dead: false,
   bossLeave: false,
+  showSparks: false,
   init: function() {
     console.log('init');
 
@@ -50,7 +51,11 @@ let game = {
       "homeowners know that there's no need to pick up after themselves anymore. They can throw " +
       "their trash straight on the floor from now on! And by the way, try to be a little more careful " +
       "with your power cord, it's the only thing keeping you alive!", action: () => {game.maxTrash = 20;}});
-    game.scoreThresholds.push({val: 500, msg: "The door is open.", action: game.openDoor});
+    game.scoreThresholds.push({val: 500, msg: "You won't believe it! I posted a video of you on BotTube " +
+      "and it went viral! There was a big vote and now you're the United Nations Sanitation " +
+      "Agent For Earth. That means it's time to head outside and show everyone what you're made of! " +
+      "I've opened the door so let's go!", action: game.openDoor});
+
 
     //game.music = new Audio('./spot_and_boss_intro2.mp3');
     //game.music.oncanplaythrough = () => game.music.play();
@@ -117,7 +122,10 @@ let game = {
               setTimeout(() => {
                 if (!game.dead) {
                   game.dead = true;
-                  game.showDialogBox('oops');
+                  game.showDialogBox("OH NO! How could you have been so careless?! You should have known " +
+                    "your power cord wouldn't reach all the way out here! Oh well, I guess it's no one's " +
+                    "fault really but I don't know how you even got the idea to leave the house. Anyway, " +
+                    "I better be going now, I really have a lot of other stuff to do. Good luck with all this!");
                   game.bossLeave = true;
                 }
               }, 6000);
@@ -153,6 +161,8 @@ let game = {
         if (spotPos.x > 6.3 && game.plugJoint) {
           game.world.DestroyJoint(game.plugJoint);
           game.plugJoint = undefined;
+          game.showSparks = true;
+          setTimeout(() => game.showSparks = false, 2000);
         }
 
         //collect collectables
@@ -340,6 +350,22 @@ let game = {
       ctx.textBaseline = 'bottom';
       ctx.fillText(`Trash collected: ${game.score}`, 10, game.canvas.height - 8);
 
+      if (game.showSparks) {
+        //draw sparks
+        let centerX = game.cx || 10;
+        let centerY = game.cy || 535;
+        ctx.strokeStyle = '#F1D64A';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+          ctx.moveTo(centerX, centerY);
+          let angle = Math.random() * Math.PI * 2;
+          let length = Math.random() * 35;
+          ctx.lineTo(centerX + length * Math.cos(angle), centerY + length * Math.sin(angle));
+        }
+        ctx.stroke();
+      }
+
     }
 
     if (game.dialogActive) {
@@ -483,8 +509,8 @@ let game = {
     }
     //Self Propelled Obliterater of Trash (S.P.O.T) and the Bot Operation Support Superintendent (B.O.S.S)
     let dialogText = "Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S)." +
-      " I'm in charge of watching over that Self Propelled Obliterater of Trash (S.P.O.T)" +
-      " down there. Can you help him collect trash with " + (game.touchScreen ? "the" : "your") +
+      " I'm in charge of watching over you, the Self Propelled Obliterater of Trash (S.P.O.T)" +
+      ". Can you try to collect that trash by moving with " + (game.touchScreen ? "the" : "your") +
       " arrow " + (game.touchScreen ? "buttons" : "keys") + "?";
     game.showDialogBox(dialogText);
 

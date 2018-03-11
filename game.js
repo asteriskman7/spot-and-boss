@@ -23,6 +23,7 @@ let game = {
   dead: false,
   bossLeave: false,
   showSparks: false,
+  finished: false,
   init: function() {
     console.log('init');
 
@@ -102,7 +103,7 @@ let game = {
         }
       }
     } else {
-      if (game.physicsEnabled) {
+      if (game.physicsEnabled && !game.finished) {
         if (game.plugJoint) {
           if (game.pressedKeys.ArrowRight) {
             game.spot.ApplyForce(new b2Vec2(game.speed, 0), game.spot.GetWorldCenter());
@@ -127,6 +128,7 @@ let game = {
                     "fault really but I don't know how you even got the idea to leave the house. Anyway, " +
                     "I better be going now, I really have a lot of other stuff to do. Good luck with all this!");
                   game.bossLeave = true;
+                  setTimeout(() => game.finished = true, 3000);
                 }
               }, 6000);
             }
@@ -396,6 +398,28 @@ let game = {
         ctx.fillText(msgLine, 120, nextTextY);
         nextTextY += 20;
       }
+
+    }
+
+    if (game.finished) {
+      let frameNum = Math.floor(timestamp / 1000) % 2;
+      let faceSize = images.getImageSize('spotface' + frameNum);
+      images.draw(ctx, 'spotface' + frameNum, (game.canvas.width - faceSize.width) * 0.5,
+       (game.canvas.height - faceSize.height) * 0.2);
+      ctx.fillStyle = game.fs || "#00000060";
+      let rx = 40;
+      let ry = 382;
+      let rw = game.canvas.width - 2 * rx;
+      let rh = 70;
+      ctx.fillRect(rx, ry, rw, rh);
+      ctx.font = "30px 'Russo One'";
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#000000';
+      ctx.fillText('All dogs go to heaven.... right?!?', game.canvas.width * 0.5,
+       game.canvas.height * 0.7);
+      ctx.font = "10px 'Russo One'";
+      ctx.fillText('The End', game.canvas.width * 0.5, game.canvas.height * 0.7 + 25);
+
     }
 
     game.drawButtons();

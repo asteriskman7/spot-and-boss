@@ -114,12 +114,14 @@ let game = {
         } else {
           if (!game.dead) {
             let spotPos = game.spot.GetPosition();
-            let stopX = 7.0;
             if (spotPos.x > 6.3) {
               game.outside = true;
-              let d = stopX - spotPos.x;
               let linearV = game.spot.GetLinearVelocity();
               game.spot.SetLinearVelocity(new b2Vec2(linearV.x * 0.9, linearV.y));
+              let xLimit = 7.5;
+              if (spotPos.x > xLimit) {
+                game.spot.SetPosition(new b2Vec2(xLimit, spotPos.y));
+              }
               setTimeout(() => {
                 if (!game.dead) {
                   game.dead = true;
@@ -127,10 +129,9 @@ let game = {
                     "your power cord wouldn't reach all the way out here! Oh well, I guess it's no one's " +
                     "fault really but I don't know how you even got the idea to leave the house. Anyway, " +
                     "I better be going now, I really have a lot of other stuff to do. Good luck with all this!",
-                    () => {console.log('dialog close');setTimeout(() => game.finished = true, 3000)}
+                    () => {setTimeout(() => game.finished = true, 3000)}
                   );
                   game.bossLeave = true;
-                  //setTimeout(() => game.finished = true, 3000);
                 }
               }, 6000);
             }

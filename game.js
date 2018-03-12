@@ -126,9 +126,11 @@ let game = {
                   game.showDialogBox("OH NO! How could you have been so careless?! You should have known " +
                     "your power cord wouldn't reach all the way out here! Oh well, I guess it's no one's " +
                     "fault really but I don't know how you even got the idea to leave the house. Anyway, " +
-                    "I better be going now, I really have a lot of other stuff to do. Good luck with all this!");
+                    "I better be going now, I really have a lot of other stuff to do. Good luck with all this!",
+                    () => {console.log('dialog close');setTimeout(() => game.finished = true, 3000)}
+                  );
                   game.bossLeave = true;
-                  setTimeout(() => game.finished = true, 3000);
+                  //setTimeout(() => game.finished = true, 3000);
                 }
               }, 6000);
             }
@@ -698,11 +700,12 @@ let game = {
   doRightTouch: function() {
     game.pressedKeys.ArrowRight = true;
   },
-  showDialogBox: function(msg) {
+  showDialogBox: function(msg, callback) {
     //stop physics
     game.physicsEnabled = false;
     game.dialogActive = true;
     game.dialogMsg = msg;
+    game.dialogCallback = callback;
     //game.createButton(x, y, w, h, "30px 'Russo One'", bgcolor, fgcolor, '#000000', text, callback);
     let buttonWidth = 100;
     let buttonHeight = 40;
@@ -712,6 +715,9 @@ let game = {
   closeDialogBox: function() {
     game.physicsEnabled = true;
     game.dialogActive = false;
+    if (game.dialogCallback) {
+      game.dialogCallback();
+    }
     //delete the button
     game.removeButtonByTag('dialogBoxButton');
   },

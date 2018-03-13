@@ -45,8 +45,8 @@ let game = {
     game.touchScreen = false;
 
     game.scoreThresholds = [];
-    game.scoreThresholds.push({val: 10, msg: "Wow! You're really getting the hang of this! " +
-      "Since you've already collected 10 pieces of trash I'll go ahead and give you a speed upgrade! " +
+    game.scoreThresholds.push({val: 20, msg: "Wow! You're really getting the hang of this! " +
+      "Since you've already collected 20 pieces of trash I'll go ahead and give you a speed upgrade! " +
       "Keep collecting that trash!", action: () => {game.speed = 2.0;} });
     game.scoreThresholds.push({val: 100, msg: "You're doing an AMAZING job! I'm going to let the " +
       "homeowners know that there's no need to pick up after themselves anymore. They can throw " +

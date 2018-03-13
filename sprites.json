@@ -13,7 +13,13 @@
     {"name": "trash3", "x": 44, "y": 4, "width": 16, "height": 16},
     {"name": "trash4", "x": 62, "y": 4, "width": 16, "height": 16},
     {"name": "trash5", "x": 80, "y": 4, "width": 16, "height": 16},
+    {"name": "trash6", "x": 98, "y": 3, "width": 16, "height": 16},
+    {"name": "trash7", "x": 98, "y": 21, "width": 16, "height": 16},
+    {"name": "trash8", "x": 115, "y": 3, "width": 16, "height": 16},
+    {"name": "trash9", "x": 115, "y": 21, "width": 16, "height": 16},
+    {"name": "trash10", "x": 133, "y": 2, "width": 16, "height": 16},
+    {"name": "trash11", "x": 133, "y": 22, "width": 16, "height": 16},
     {"name": "spotface0", "x": 606, "y": 646, "width": 222, "height": 242},
-    {"name": "spotface1", "x": 606, "y": 890, "width": 222, "height": 242}    
+    {"name": "spotface1", "x": 606, "y": 890, "width": 222, "height": 242}
   ]
 }

@@ -129,7 +129,7 @@ let game = {
                     "your power cord wouldn't reach all the way out here! Oh well, I guess it's no one's " +
                     "fault really but I don't know how you even got the idea to leave the house. Anyway, " +
                     "I better be going now, I really have a lot of other stuff to do. Good luck with all this!",
-                    () => {setTimeout(() => game.finished = true, 3000)}
+                    () => {setTimeout(() => game.finished = true, 3000);}
                   );
                   game.bossLeave = true;
                 }
@@ -178,13 +178,18 @@ let game = {
           let minCX = v.x - 0.5 * v.w;
           let maxCX = minCX + v.w;
           if ((minCX >= minSpotX && minCX <= maxSpotX) || (maxCX >= minSpotX && maxCX <= maxSpotX)) {
-            return false;
+            if (v.x < 470) {
+              return false;
+            } else {
+              return true; //can't collect because it's outside
+            }
           } else {
             return true;
           }
           //return true for everything not collected
         });
 
+        //add collectables until at maxTrash
         while (game.collectables.length < game.maxTrash) {
           game.score += 1;
           game.addCollectable();
@@ -227,7 +232,13 @@ let game = {
       game.collectables.forEach(v => {
         ctx.fillStyle = '#00FF00';
         //ctx.fillRect(v.x - v.w * 0.5, 533, v.w, v.w);
-        images.draw(ctx, `trash${v.type}`, v.x - v.w * 0.5, 533);
+        let ypos;
+        if (v.x < 450) {
+          ypos = 533;
+        } else {
+          ypos = 574;
+        }
+        images.draw(ctx, `trash${v.type}`, v.x - v.w * 0.5, ypos);
       });
 
 
@@ -726,13 +737,20 @@ let game = {
     game.buttons = game.buttons.filter((v) => v.tag !== tag);
   },
   addCollectable: function() {
-    let minx = 70;
-    let maxx = 440;
-    let trashTypes = 6;
-    game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 16, type: Math.floor(Math.random() * trashTypes)});
+    let trashTypes = 12;
+    if (game.door) {
+      let minx = 70;
+      let maxx = 440;
+      game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 16, type: Math.floor(Math.random() * trashTypes)});
+    } else {
+      let minx = 480;
+      let maxx = 610;
+      game.collectables.push({x: minx + Math.random() * (maxx - minx), w: 16, type: Math.floor(Math.random() * trashTypes)});
+    }
   },
   openDoor: function() {
     game.world.DestroyBody(game.door);
+    game.door = undefined;
   }
 };
 
